@@ -103,7 +103,7 @@ checkType' i context (Inf e) t = do
     unless (t == t') (throwError "incorrect annotation")
 checkType' i context (Lam e) (Inf (Fun t t')) =
     checkType' (i+1) ((Local i, t) : context) (substCheckable 0 (Free (Local i)) e) t'
-checkType' i context _ _ = do throwError "invalid typing"
+checkType' i context _ _ = throwError "invalid typing"
 
 substInferable :: Int -> InferableTerm -> InferableTerm -> InferableTerm
 substInferable i r (Ann e t) = Ann (substCheckable i r e) t
@@ -124,7 +124,7 @@ quote' :: Int -> Value -> CheckableTerm
 quote' i (VLam f) = Lam (quote' (i+1) (f (vfree (Quote i))))
 quote' i (VNeutral n) = Inf (neutralQuote i n)
 quote' i (VUniv j) = Inf (Univ j)
-quote' i (VFun v v') = Inf (Fun (quote' (i+1) v) (quote' (i+1) v'))
+quote' i (VFun v v') = Inf (Fun (quote' i v) (quote' i v'))
 
 neutralQuote :: Int -> Neutral -> InferableTerm
 neutralQuote i (NFree n) = Free n
