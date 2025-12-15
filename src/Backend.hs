@@ -1,5 +1,5 @@
-module HoTT.Backend where
-import Control.Monad
+module Backend ( Result, throwError ) where
+import Control.Monad ( unless )
 
 data Name =
     Global String
@@ -74,7 +74,7 @@ inferType' :: Int -> Judgements -> Equalities -> InferableTerm -> Result Checkab
 inferType' i judgements eqs (Ann e t) = do
     checkType' i judgements eqs e t
     return t
-inferType' i judgements eqs (Free x) = case lookup x eqs of
+inferType' _ judgements eqs (Free x) = case lookup x eqs of
         Just t -> return t
         Nothing -> case lookup x judgements of
             Just t -> return t
@@ -84,7 +84,7 @@ inferType' i judgements eqs (App e e') = do
     case t of
         Inf (Fun a b) -> do checkType' i judgements eqs e' a; return b
         _ -> throwError "illegal application"
-inferType' i judgements eqs (Univ n) =
+inferType' _ _ _ (Univ n) =
     if n < 0 then throwError "Universe indices must be nonnegative"
     else Right (Inf (Univ (n+1)))
 inferType' i judgements eqs (Fun t t') = case (t, t') of
