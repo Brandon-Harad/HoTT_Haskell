@@ -1,4 +1,4 @@
-module Parser (lexer, parseStatement, Token(..), parseTermNode) where
+module Parser (lexer, parseStatement, Token(..), parseTermNode, commaSugar) where
 import Data.List (stripPrefix)
 import Data.Char (isDigit, isAlphaNum, isAlpha)
 
@@ -14,6 +14,7 @@ data Token =
     | Assign
     | Lambda
     | Dot
+    | Comma
     deriving (Show, Eq)
 -- TODO: complete
 
@@ -42,6 +43,8 @@ lexer s -- there has got to be a better way :sob:
         = (Assign :) <$> lexer s'
     | Just s' <- stripPrefix ":" s
         = (Colon :) <$> lexer s'
+    | Just s' <- stripPrefix "," s
+        = (Comma :) <$> lexer s'
     | Just s' <- stripPrefix "U " s,
         (n, s'') <- span isDigit s'
         = (Univ (read n) :) <$> lexer s''
@@ -83,6 +86,13 @@ parseStatement (DefToken : Name f : Colon : tks)
     = Just (Def (f, g, h))
 parseStatement _ = Nothing
 
+-- This replaces syntactic sugar with the base syntax
+-- sugar :: [Token] -> [Token]
+
+commaSugar :: [Token] -> [Token]
+commaSugar tks = let n = length (filter (==Comma) tks) in
+        replicate n LeftParen ++ concatMap (\x -> if x == Comma then [RightParen, RightParen, LeftParen] else [x]) tks
+
 -- The input looks like tokens corresponding to a termnode followed by some extra tokens :3
 parseTermNode :: [Token] -> Maybe (TermNode, [Token])
 parseTermNode (LeftParen : tks)
@@ -113,7 +123,7 @@ peekAndParse (tmNode, []) = Just (tmNode, [])
 peekAndParse (tmNode, tks) = do
     if head tks == LeftParen then do
         (tmNode2, tks') <- parseTermNode (tail tks)
-        if not (null tks') && head tks' == RightParen 
+        if not (null tks') && head tks' == RightParen
             then return (App tmNode tmNode2, tail tks')
             else Nothing
     else return (tmNode, tks)

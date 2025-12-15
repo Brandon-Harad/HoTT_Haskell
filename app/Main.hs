@@ -1,5 +1,5 @@
 module Main (main) where
-import Parser (lexer, parseStatement, Token(..), parseTermNode)
+import Parser (lexer, parseStatement, Token(..), parseTermNode, commaSugar)
 
 -- judgements1 = []
 -- eqs1 = []
@@ -11,5 +11,5 @@ main :: IO ()
 main = do
     -- print func
     -- print (quote (Backend.evalInferable' [] eqs2 (Backend.App (Backend.Ann (Inf func) (Inf (Backend.Fun (Inf aType) (Inf aType)))) (Inf aElem))))
-    let f = \x -> lexer x >>= parseStatement
-    print (f "def f : g(h(j)) := i(j)") 
+    let f = \x -> lexer x >>= parseTermNode
+    print ((commaSugar <$> lexer "f(a)") >>= parseTermNode)
