@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Backend
+      Interpreter
       Lib
       Parser
   other-modules:

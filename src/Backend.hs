@@ -1,4 +1,4 @@
-module Backend ( Result, throwError ) where
+module Backend where
 import Control.Monad ( unless )
 
 data Name =
